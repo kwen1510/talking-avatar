@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <!-- Ensure proper scaling on mobile devices -->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Talking Flower Pot</title>
+  <style>
+    body {
+      text-align: center;
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+      background: #f0f0f0;
+    }
+    h1 {
+      margin-top: 20px;
+    }
+    #controls {
+      margin: 20px;
+    }
+    #inputText {
+      width: 80%;
+      max-width: 300px;
+      padding: 10px;
+      font-size: 16px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+    }
+    button {
+      padding: 10px 20px;
+      font-size: 16px;
+      margin-top: 10px;
+      border: none;
+      border-radius: 4px;
+      background-color: #4caf50;
+      color: white;
+      cursor: pointer;
+    }
+    button:active {
+      background-color: #45a049;
+    }
+    /* p5.js will create a canvas element; make sure it scales on mobile */
+    canvas {
+      display: block;
+      margin: 0 auto 20px;
+    }
+  </style>
+  <!-- Include p5.js from a CDN -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.4.0/p5.min.js"></script>
+</head>
+<body>
+  <h1>Talking Flower Pot</h1>
+  <div id="controls">
+    <input type="text" id="inputText" placeholder="Type something..." />
+    <br />
+    <button onclick="speakText()">Speak</button>
+  </div>
+
+  <script>
+    // Global variables to control the talking animation.
+    let isSpeaking = false;
+    let mouthOpen = 0; // A value between 0 (closed) and 1 (fully open)
+
+    // p5.js: Setup a responsive canvas.
+    function setup() {
+      let canvasSize = Math.min(windowWidth, 400);
+      createCanvas(canvasSize, canvasSize);
+      noStroke();
+      // Draw the flower pot initially with a closed mouth.
+      drawFlowerPot(0);
+    }
+
+    // p5.js: Redraw the canvas every frame.
+    function draw() {
+      background(240);
+      // If the pot is speaking, animate its mouth using a sine wave.
+      if (isSpeaking) {
+        // The sine function produces smooth oscillation.
+        mouthOpen = 0.5 + 0.5 * sin(millis() / 100);
+      } else {
+        mouthOpen = 0;
+      }
+      drawFlowerPot(mouthOpen);
+    }
+
+    // p5.js: Redraw canvas on window resize for a responsive design.
+    function windowResized() {
+      let canvasSize = Math.min(windowWidth, 400);
+      resizeCanvas(canvasSize, canvasSize);
+    }
+
+    // Draws a cartoon flower pot with a face.
+    // The mouth is drawn as an arc that opens more when mouthOpen is higher.
+    function drawFlowerPot(mouthOpen) {
+      push();
+      translate(width / 2, height / 2);
+      
+      // Draw the pot body (a brown rounded rectangle).
+      fill(150, 75, 0);
+      rectMode(CENTER);
+      rect(0, 20, 100, 80, 10);
+      
+      // Draw the pot rim as an ellipse.
+      fill(180, 90, 0);
+      ellipse(0, -20, 120, 40);
+      
+      // Draw the face (eyes and mouth).
+      // Eyes:
+      fill(255);
+      ellipse(-20, -30, 15, 15);
+      ellipse(20, -30, 15, 15);
+      fill(0);
+      ellipse(-20, -30, 5, 5);
+      ellipse(20, -30, 5, 5);
+      
+      // Mouth:
+      stroke(0);
+      strokeWeight(2);
+      noFill();
+      // The mouth is an arc centered at (0, -10).
+      // Its height increases with mouthOpen.
+      let mouthWidth = 40;
+      let mouthHeight = 10 + 20 * mouthOpen;
+      arc(0, -10, mouthWidth, mouthHeight, 0, PI);
+      pop();
+    }
+
+    // Function to speak the text from the input box using the Web Speech API.
+    function speakText() {
+      let text = document.getElementById("inputText").value;
+      if (text.trim().length === 0) return;
+
+      // Create a SpeechSynthesisUtterance for the entered text.
+      let utterance = new SpeechSynthesisUtterance(text);
+      utterance.lang = "en-US";
+
+      // When speech starts, flag the pot as speaking.
+      utterance.onstart = function() {
+        isSpeaking = true;
+      };
+
+      // When speech ends, stop the animation.
+      utterance.onend = function() {
+        isSpeaking = false;
+      };
+
+      // Speak the text.
+      speechSynthesis.speak(utterance);
+    }
+  </script>
+</body>
+</html>
